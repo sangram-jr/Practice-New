@@ -1,9 +1,10 @@
 import express from "express"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-import { contentModel, userModel } from "./db.js";
+import { contentModel, LinkModel, userModel } from "./db.js";
 import { userMiddleware } from "./middleware.js";
 import mongoose from "mongoose";
+import { random } from "./utils.js";
 
 const app=express();
 app.use(express.json());
@@ -119,6 +120,44 @@ app.delete('/content',userMiddleware,async(req,res)=>{
     } catch (error) {
         return res.status(500).json({message:"Internal Server Error"});
     }
+})
+
+//generate Link
+app.post('/share',userMiddleware,async(req,res)=>{
+    try {
+        
+        const share=req.body.share;
+        if(!req.userId){
+            return res.status(401).json({message:"unAuthorized"});
+        }
+        if(share===true){
+            //find existing link
+            const existingLink=await LinkModel.findOne({
+                userId:req.userId
+            })
+            if(existingLink){
+                res.status(200).json({hash:existingLink.hash})
+            }
+            //if existing link not present then create new link
+            const newHash=random(10);
+            const newLink=await LinkModel.create({
+                hash:newHash,
+                userId:req.userId
+            })
+            res.status(200).json({newLink});
+            
+
+        }else{
+            await LinkModel.deleteOne({
+                userId:req.userId
+            })
+            res.json({message:"link deleted"})
+        }
+    } catch (error) {
+         return res.status(500).json({message:"Internal Server Error"});
+    }
+    
+    
 })
 
 app.listen(3000,()=>{
