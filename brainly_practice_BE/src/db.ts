@@ -1,21 +1,27 @@
 import mongoose,{Schema,model} from "mongoose"
 import dotenv from "dotenv"
-import { ref, title } from "node:process";
-import { types } from "node:util";
+
 dotenv.config();
 
 
-mongoose.connect(process.env.MONGO_URL as string);
+
+mongoose.connect(process.env.MONGO_URL as string)
+.then(() => {
+    console.log("MongoDB Connected Successfully");
+  })
+  .catch((err) => {
+    console.log("MongoDB Connection Error:", err);
+  });
 
 const userSchema=new Schema({
     username:{
         type:String,
-        require:true
+        required:true
     },
     password:{
         type:String,
-        require:true,
-        unique:true
+        required:true,
+        
     }
 });
 export const userModel=model("User", userSchema);
@@ -31,9 +37,9 @@ const contentSchema=new Schema({
         type:String
     },
     userId:{
-        type:new mongoose.Types.ObjectId,
+        type:mongoose.Types.ObjectId,
         ref:"User",
-        require:true
+        required:true
     }
 })
 export const contentModel=model("Content",contentSchema);
@@ -43,9 +49,9 @@ const linkSchema=new Schema({
         type:String,  
     },
     userId:{
-        type:new mongoose.Types.ObjectId,
+        type:mongoose.Types.ObjectId,
         ref:"User",
-        require:true,
+        required:true,
         unique:true
     }
 })
