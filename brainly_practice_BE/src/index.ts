@@ -85,6 +85,42 @@ app.post('/content',userMiddleware,async(req,res)=>{
     
 });
 
+//fetch the content
+app.get('/content',userMiddleware,async(req,res)=>{
+    try {
+        if(!req.userId){
+            return res.status(401).json({message:"unAuthorized"});
+        }
+       const content=await contentModel.find({
+        userId:req.userId
+       }).populate("userId", "username") ;
+
+       res.status(200).json({content});
+
+    } catch (error) {
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+})
+
+//delete content
+app.delete('/content',userMiddleware,async(req,res)=>{
+    try {
+
+        if(!req.userId){
+            return res.status(401).json({message:"unAuthorized"});
+        }
+
+        const contentId=req.body.contentId;
+        await contentModel.deleteOne({
+            userId:req.userId,
+            _id:contentId
+        });
+        res.status(200).json({message:"content delete successfully"});
+    } catch (error) {
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+})
+
 app.listen(3000,()=>{
     console.log("server running on port 3000");
     
