@@ -1,7 +1,9 @@
 import express from "express"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-import { userModel } from "./db.js";
+import { contentModel, userModel } from "./db.js";
+import { userMiddleware } from "./middleware.js";
+import mongoose from "mongoose";
 
 const app=express();
 app.use(express.json());
@@ -25,10 +27,7 @@ app.post('/signup',async(req,res)=>{
     })
     res.status(200).json({message:"sign up successfull"})
 })
-app.listen(3000,()=>{
-    console.log("server running on port 3000");
-    
-});
+
 
 //signin
 app.post('/signin',async(req,res)=>{
@@ -56,3 +55,37 @@ app.post('/signin',async(req,res)=>{
         })
     }
 })
+
+//content creation
+app.post('/content',userMiddleware,async(req,res)=>{
+    try {
+        const title=req.body.title;
+        const link=req.body.link;
+        const type=req.body.type;
+
+        if(!req.userId){
+            return res.status(401).json({message:"not authorized"});
+        }
+
+        if (!title || !link || !type) {
+        return res.status(400).json({ message: "Missing fields" });
+        }
+
+        await contentModel.create({
+            title:title,
+            link:link,
+            type:type,
+            userId:new mongoose.Types.ObjectId(req.userId)
+        })
+        res.status(200).json({message:"content added"});
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server error" });
+    }
+    
+});
+
+app.listen(3000,()=>{
+    console.log("server running on port 3000");
+    
+});

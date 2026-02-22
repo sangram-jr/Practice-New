@@ -33,7 +33,7 @@ const contentSchema=new Schema({
     link:{
         type:String
     },
-    types:{
+    type:{
         type:String
     },
     userId:{
