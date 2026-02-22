@@ -157,9 +157,47 @@ app.post('/share',userMiddleware,async(req,res)=>{
          return res.status(500).json({message:"Internal Server Error"});
     }
     
-    
 })
 
+//share link(by this link anyone can access to the indivisual's content)
+app.get('/share/:shareLink',async(req,res)=>{
+    try {
+        
+        const hash=req.params.shareLink;
+        
+
+        //first find correct hash
+        const existingHash=await LinkModel.findOne({
+            hash:hash
+        });
+        if(!existingHash){
+           return res.status(201).json({message:"hash not found"})
+        };
+        //2nd find content from linkModel's userId
+        const content=await contentModel.find({
+            userId:existingHash.userId
+        })
+        if(!content){
+            return res.status(201).json({message:"content not found"});
+        };
+        //3rd find user from linkModel's userId
+        const user=await userModel.findOne({
+            _id:existingHash.userId
+        })
+        if(!user){
+            return res.status(201).json({message:"user not found"});
+        }
+        //send content and username
+        res.json({
+            username:user.username,
+            content:content
+        });
+
+    } catch (error) {
+        return res.status(500).json({message:"Internal Server Error"});
+    }
+    
+})
 app.listen(3000,()=>{
     console.log("server running on port 3000");
     
